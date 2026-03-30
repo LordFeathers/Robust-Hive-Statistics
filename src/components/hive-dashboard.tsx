@@ -361,7 +361,7 @@ export function HiveDashboard() {
           </div>
 
           {/* Active game stats */}
-          <div style={{ animationDelay: "0.2s" }}>
+          <div key={activeGame} className="animate-fade-in-up" style={{ animationDelay: "0.05s" }}>
             <ErrorBoundary>
               <GameStatsPanel
                 config={activeConfig}

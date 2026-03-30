@@ -141,9 +141,13 @@ export function GameStatsPanel({
       {/* XP / Games / Wins bar */}
       <div className="flex flex-wrap items-center gap-4 rounded-xl border border-[rgba(255,184,0,0.06)] bg-[rgba(255,184,0,0.02)] px-5 py-3">
         <div className="flex items-center gap-2">
-          <span className="text-xs uppercase tracking-widest text-[#7a756b]">Level</span>
+          <span className="text-xs uppercase tracking-widest text-[#7a756b]">
+            {stats.prestige !== undefined && stats.prestige > 0 ? "Prestige" : "Level"}
+          </span>
           <span className="font-mono text-lg font-bold" style={{ color: config.color }}>
-            {xpLevel}
+            {stats.prestige !== undefined && stats.prestige > 0
+              ? `${stats.prestige} · Lv ${xpLevel}`
+              : xpLevel}
           </span>
         </div>
         <div className="h-4 w-px bg-[rgba(255,184,0,0.1)]" />
@@ -161,15 +165,6 @@ export function GameStatsPanel({
           <span className="text-xs uppercase tracking-widest text-[#7a756b]">Wins</span>
           <span className="font-mono text-sm text-[#f0ece4]/80">{formatNumber(stats.victories || 0)}</span>
         </div>
-        {stats.prestige !== undefined && stats.prestige > 0 && (
-          <>
-            <div className="h-4 w-px bg-[rgba(255,184,0,0.1)]" />
-            <div className="flex items-center gap-2">
-              <span className="text-xs uppercase tracking-widest text-[#7a756b]">Prestige</span>
-              <span className="font-mono text-sm font-bold text-[#FFB800]">{stats.prestige}</span>
-            </div>
-          </>
-        )}
         {stats.first_played && (
           <>
             <div className="h-4 w-px bg-[rgba(255,184,0,0.1)]" />
@@ -306,6 +301,14 @@ export function GameStatsPanel({
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Level rewards skeleton while meta loads */}
+      {!gameMeta && (
+        <div className="rounded-xl border border-[rgba(255,184,0,0.06)] bg-[rgba(255,184,0,0.02)] px-4 py-3 flex items-center justify-between">
+          <Skeleton className="h-3 w-24 bg-[rgba(255,184,0,0.06)]" />
+          <Skeleton className="h-3 w-32 bg-[rgba(255,184,0,0.06)]" />
         </div>
       )}
 
