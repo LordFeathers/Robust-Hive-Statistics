@@ -160,7 +160,16 @@ export function HiveDashboard() {
           return !best || wr > best.wr ? { config: g.config, wr } : best;
         }, null);
 
-        return { totalWins, totalGames, bestGame, gamesPlayed: games.length };
+        let totalKills = 0;
+        let totalDeaths = 0;
+        for (const { stats } of games) {
+          if (!stats) continue;
+          totalKills += (stats.kills as number) || 0;
+          totalDeaths += (stats.deaths as number) || 0;
+        }
+        const kdRatio = totalDeaths > 0 ? totalKills / totalDeaths : null;
+
+        return { totalWins, totalGames, bestGame, gamesPlayed: games.length, kdRatio };
       })()
     : null;
 
@@ -247,7 +256,7 @@ export function HiveDashboard() {
       {profile && !loadingProfile && (
         <div className="space-y-6">
           <ErrorBoundary>
-            <PlayerProfileCard profile={profile} />
+            <PlayerProfileCard profile={profile} kdRatio={summaryStats?.kdRatio ?? null} />
           </ErrorBoundary>
 
           {/* All-games summary */}
@@ -360,7 +369,7 @@ export function HiveDashboard() {
           <span className="text-[#FFB800]/30">api.playhive.com</span>
           {" · "}Not affiliated with Hive Games
         </p>
-        <p className="mt-1">Made with ❤️ by Yaakov Sassoon</p>
+        <p className="mt-1">Made by Yaakov Sassoon</p>
       </footer>
     </div>
   );

@@ -10,6 +10,17 @@ export interface PlayerSearchResult {
   username_cc: string;
 }
 
+export interface CosmeticItem {
+  name: string;
+  icon?: string;
+  rarity?: string;
+}
+
+export interface AvatarItem {
+  url: string;
+  name: string;
+}
+
 export interface PlayerProfile {
   UUID: string;
   xuid: number;
@@ -22,12 +33,18 @@ export interface PlayerProfile {
   hub_title_count: number;
   hub_title_unlocked: string[];
   avatar_count: number;
+  avatar_unlocked?: AvatarItem[];
   costume_count: number;
+  costume_unlocked?: string[];
   hat_count: number;
+  hat_unlocked?: CosmeticItem[];
   backbling_count: number;
+  // API returns this under the literal key "cosmetics.backbling"
+  "cosmetics.backbling"?: CosmeticItem[];
   friend_count: number;
   equipped_hub_title: string;
-  equipped_avatar: { url: string; name: string } | null;
+  equipped_avatar: AvatarItem | null;
+  equipped_hat?: CosmeticItem | null;
   quest_count: number;
   paid_ranks: string[];
   pets: string[];
