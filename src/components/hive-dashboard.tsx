@@ -169,7 +169,12 @@ export function HiveDashboard() {
         }
         const kdRatio = totalDeaths > 0 ? totalKills / totalDeaths : null;
 
-        return { totalWins, totalGames, bestGame, gamesPlayed: games.length, kdRatio };
+        const mostPlayed = games.reduce<{ config: GameConfig; played: number } | null>((best, g) => {
+          const played = g.stats?.played || 0;
+          return !best || played > best.played ? { config: g.config, played } : best;
+        }, null);
+
+        return { totalWins, totalGames, bestGame, mostPlayed, gamesPlayed: games.length, kdRatio };
       })()
     : null;
 
@@ -261,7 +266,7 @@ export function HiveDashboard() {
 
           {/* All-games summary */}
           {summaryStats && (
-            <div className="animate-fade-in-up grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="animate-fade-in-up grid grid-cols-2 sm:grid-cols-5 gap-3">
               <div className="rounded-xl border border-[rgba(255,184,0,0.06)] bg-[rgba(255,184,0,0.02)] px-4 py-3 text-center">
                 <div className="font-mono text-xl font-bold text-[#f0ece4]">{formatNumber(summaryStats.totalWins)}</div>
                 <div className="mt-0.5 text-[10px] uppercase tracking-widest text-[#7a756b]">Total Wins</div>
@@ -283,6 +288,18 @@ export function HiveDashboard() {
                       {summaryStats.bestGame.config.icon} {summaryStats.bestGame.wr.toFixed(1)}%
                     </div>
                     <div className="mt-0.5 text-[10px] uppercase tracking-widest text-[#7a756b]">Best Win Rate · <span className="normal-case">{summaryStats.bestGame.config.name}</span></div>
+                  </>
+                ) : (
+                  <div className="text-[#7a756b] text-xs">—</div>
+                )}
+              </div>
+              <div className="rounded-xl border border-[rgba(255,184,0,0.06)] bg-[rgba(255,184,0,0.02)] px-4 py-3 text-center">
+                {summaryStats.mostPlayed ? (
+                  <>
+                    <div className="font-mono text-xl font-bold" style={{ color: summaryStats.mostPlayed.config.color }}>
+                      {summaryStats.mostPlayed.config.icon} {formatNumber(summaryStats.mostPlayed.played)}
+                    </div>
+                    <div className="mt-0.5 text-[10px] uppercase tracking-widest text-[#7a756b]">Most Played · <span className="normal-case">{summaryStats.mostPlayed.config.name}</span></div>
                   </>
                 ) : (
                   <div className="text-[#7a756b] text-xs">—</div>

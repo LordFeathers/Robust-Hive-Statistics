@@ -326,18 +326,12 @@ export function PlayerProfileCard({ profile, kdRatio, totalWins }: PlayerProfile
                 className="flex h-20 w-20 items-center justify-center rounded-2xl border-2"
                 style={{ borderColor: rankColor(topRank) + "40" }}
               >
-                {profile.equipped_avatar?.url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={profile.equipped_avatar.url}
-                    alt={profile.equipped_avatar.name}
-                    className="h-16 w-16 rounded-xl object-cover"
-                  />
-                ) : (
-                  <span className="font-heading text-3xl font-bold text-[#FFB800]">
-                    {profile.username_cc?.charAt(0).toUpperCase() || "?"}
-                  </span>
-                )}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={profile.equipped_avatar?.url || "https://cdn.playhive.com/avatars/default.png"}
+                  alt={profile.equipped_avatar?.name || "Default avatar"}
+                  className="h-16 w-16 rounded-xl object-cover"
+                />
               </div>
             </div>
 
