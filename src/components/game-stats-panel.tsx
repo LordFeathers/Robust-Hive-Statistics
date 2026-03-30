@@ -5,7 +5,7 @@ import {
   formatStatValue,
   formatNumber,
 } from "@/lib/game-config";
-import type { GameStats, MonthlyStats } from "@/lib/hive-api";
+import type { GameStats, GameMeta, MonthlyStats } from "@/lib/hive-api";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface GameStatsPanelProps {
@@ -14,6 +14,15 @@ interface GameStatsPanelProps {
   loading: boolean;
   uniquePlayers?: number | null;
   monthlyStats?: MonthlyStats | null;
+  gameMeta?: GameMeta | null;
+}
+
+function levelFromMeta(xp: number, meta: GameMeta): number {
+  const entries = Object.entries(meta.experienceToLevel)
+    .map(([k, v]) => ({ xpThreshold: Number(k), level: v }))
+    .sort((a, b) => b.xpThreshold - a.xpThreshold);
+  const match = entries.find((e) => xp >= e.xpThreshold);
+  return match ? match.level + 1 : 1;
 }
 
 export function GameStatsPanel({
@@ -22,6 +31,7 @@ export function GameStatsPanel({
   loading,
   uniquePlayers,
   monthlyStats,
+  gameMeta,
 }: GameStatsPanelProps) {
 
   if (loading) {
@@ -74,7 +84,9 @@ export function GameStatsPanel({
     .filter((s) => s.value !== undefined && s.value !== 0);
 
   const xpLevel = stats.xp
-    ? Math.floor((-1 + Math.sqrt(1 + (8 * stats.xp) / config.xpConstant)) / 2) + 1
+    ? gameMeta
+      ? levelFromMeta(stats.xp, gameMeta)
+      : Math.floor((-1 + Math.sqrt(1 + (8 * stats.xp) / config.xpConstant)) / 2) + 1
     : 1;
 
   return (

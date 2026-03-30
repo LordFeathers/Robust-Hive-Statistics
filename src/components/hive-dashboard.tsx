@@ -8,12 +8,14 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import {
   getPlayerProfile,
   getGameStats,
+  getGameMeta,
   getMonthlyStats,
   getGlobalStats,
   getAllGameStats,
   RateLimitError,
   type PlayerProfile,
   type GameStats,
+  type GameMeta,
   type MonthlyStats,
   type GlobalStats,
 } from "@/lib/hive-api";
@@ -30,6 +32,7 @@ export function HiveDashboard() {
   const [searched, setSearched] = useState(false);
   const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
   const [allGamesSummary, setAllGamesSummary] = useState<Record<string, GameStats | null> | null>(null);
+  const [gameMeta, setGameMeta] = useState<Record<string, GameMeta | null>>({});
   const [isOffline, setIsOffline] = useState(false);
 
   useEffect(() => {
@@ -61,12 +64,14 @@ export function HiveDashboard() {
       if (gameStats[gameId] !== undefined) return;
       setLoadingGame(gameId);
       try {
-        const [stats, monthly] = await Promise.all([
+        const [stats, monthly, meta] = await Promise.all([
           getGameStats(gameId, username),
           getMonthlyStats(gameId, username),
+          gameMeta[gameId] !== undefined ? Promise.resolve(gameMeta[gameId]) : getGameMeta(gameId),
         ]);
         setGameStats((prev) => ({ ...prev, [gameId]: stats }));
         setMonthlyStats((prev) => ({ ...prev, [gameId]: monthly }));
+        setGameMeta((prev) => ({ ...prev, [gameId]: meta }));
       } catch (err) {
         if (err instanceof RateLimitError) setError("You're being rate limited by the Hive API. Please wait a moment and try again.");
         setGameStats((prev) => ({ ...prev, [gameId]: null }));
@@ -86,6 +91,7 @@ export function HiveDashboard() {
       setProfile(null);
       setGameStats({});
       setMonthlyStats({});
+      setGameMeta({});
       setAllGamesSummary(null);
       setActiveGame("bed");
 
@@ -106,12 +112,14 @@ export function HiveDashboard() {
 
         // Pre-load default game stats
         setLoadingGame("bed");
-        const [bedStats, bedMonthly] = await Promise.all([
+        const [bedStats, bedMonthly, bedMeta] = await Promise.all([
           getGameStats("bed", username),
           getMonthlyStats("bed", username),
+          getGameMeta("bed"),
         ]);
         setGameStats({ bed: bedStats });
         setMonthlyStats({ bed: bedMonthly });
+        setGameMeta({ bed: bedMeta });
         setLoadingGame(null);
 
         // Load all games in background for summary
@@ -354,6 +362,7 @@ export function HiveDashboard() {
                 loading={loadingGame === activeGame}
                 uniquePlayers={globalStats?.unique_players[activeGame] ?? null}
                 monthlyStats={monthlyStats[activeGame] ?? null}
+                gameMeta={gameMeta[activeGame] ?? null}
               />
             </ErrorBoundary>
           </div>

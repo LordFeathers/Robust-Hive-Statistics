@@ -116,6 +116,18 @@ export async function getMonthlyStats(
   return fetchApi(`game/monthly/player/${game}/${encodeURIComponent(identifier)}`);
 }
 
+export interface GameMeta {
+  maxLevel: number;
+  allowPrestiging: boolean;
+  maxPrestige?: number;
+  /** Keys are XP thresholds (as strings), values are level numbers */
+  experienceToLevel: Record<string, number>;
+}
+
+export async function getGameMeta(gameId: string): Promise<GameMeta | null> {
+  return fetchApi(`game/meta/${encodeURIComponent(gameId)}`);
+}
+
 export async function getAllGameStats(
   identifier: string,
   gameIds: string[]
