@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import {
   type GameConfig,
   formatStatValue,
   formatNumber,
 } from "@/lib/game-config";
-import type { GameStats, GameMeta, MonthlyStats } from "@/lib/hive-api";
+import type { GameStats, GameMeta, MonthlyStats, LevelReward } from "@/lib/hive-api";
+import { MinecraftText, stripMinecraftColors, firstMCColor } from "@/lib/minecraft-text";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface GameStatsPanelProps {
@@ -15,6 +17,32 @@ interface GameStatsPanelProps {
   uniquePlayers?: number | null;
   monthlyStats?: MonthlyStats | null;
   gameMeta?: GameMeta | null;
+}
+
+function HubTitleIcon({ name }: { name: string }) {
+  const color = firstMCColor(name) ?? "#FFB800";
+  const plain = stripMinecraftColors(name);
+  return (
+    <div className="h-10 w-10 shrink-0 rounded-lg flex items-center justify-center" style={{ backgroundColor: color + "22", border: `1px solid ${color}44` }}>
+      <span className="text-[8px] font-bold leading-none text-center px-0.5" style={{ color }}>{plain.slice(0, 4).toUpperCase()}</span>
+    </div>
+  );
+}
+
+function RewardIcon({ reward }: { reward: LevelReward }) {
+  const [failed, setFailed] = useState(false);
+  if (reward.type === "Hub Title") return <HubTitleIcon name={reward.name} />;
+  if (!reward.icon || failed) {
+    return (
+      <div className="h-10 w-10 shrink-0 rounded-lg bg-[rgba(255,184,0,0.08)] flex items-center justify-center">
+        <span className="text-[10px] font-semibold text-[#FFB800]/60 leading-none">{reward.type.slice(0, 2).toUpperCase()}</span>
+      </div>
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={reward.icon} alt={reward.name} className="h-10 w-10 shrink-0 rounded-lg object-contain" onError={() => setFailed(true)} />
+  );
 }
 
 function levelFromMeta(xp: number, meta: GameMeta): number {
@@ -33,6 +61,7 @@ export function GameStatsPanel({
   monthlyStats,
   gameMeta,
 }: GameStatsPanelProps) {
+  const [rewardsOpen, setRewardsOpen] = useState(false);
 
   if (loading) {
     return (
@@ -240,6 +269,87 @@ export function GameStatsPanel({
           ))}
         </div>
       )}
+
+      {/* Level rewards */}
+      {gameMeta?.levelUnlocks && (() => {
+        const currentLevel = xpLevel;
+        const allLevels = Object.entries(gameMeta.levelUnlocks)
+          .map(([lvl, rewards]) => ({ level: Number(lvl), rewards }))
+          .sort((a, b) => a.level - b.level);
+
+        const nextUnlock = allLevels.find((e) => e.level > currentLevel);
+        const pastUnlocks = allLevels.filter((e) => e.level <= currentLevel).reverse();
+
+        if (!nextUnlock && pastUnlocks.length === 0) return null;
+
+        return (
+          <div className="rounded-xl border border-[rgba(255,184,0,0.06)] bg-[rgba(255,184,0,0.02)] overflow-hidden">
+            {/* Header / toggle */}
+            <button
+              onClick={() => setRewardsOpen((o) => !o)}
+              className="w-full flex items-center justify-between px-4 py-3 hover:bg-[rgba(255,184,0,0.04)] transition-colors"
+            >
+              <span className="text-[10px] uppercase tracking-widest text-[#7a756b]">Level Rewards</span>
+              <div className="flex items-center gap-3">
+                {nextUnlock && (
+                  <span className="text-xs text-[#f0ece4]/40">
+                    Next at level <span className="text-[#FFB800]">{nextUnlock.level}</span>
+                  </span>
+                )}
+                <svg
+                  width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                  className={`text-[#7a756b] transition-transform duration-200 ${rewardsOpen ? "rotate-180" : ""}`}
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </div>
+            </button>
+
+            {rewardsOpen && (
+              <div className="px-4 pb-4 space-y-4">
+                {/* Next unlock */}
+                {nextUnlock && (
+                  <div>
+                    <div className="text-[9px] uppercase tracking-widest text-[#FFB800]/60 mb-2">Next — Level {nextUnlock.level}</div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                      {nextUnlock.rewards.map((r, i) => (
+                        <div key={i} className="flex items-center gap-2 rounded-lg bg-[rgba(255,184,0,0.05)] border border-[rgba(255,184,0,0.08)] px-3 py-2">
+                          <RewardIcon reward={r} />
+                          <div className="min-w-0">
+                            <div className="text-xs truncate">{r.type === "Hub Title" ? <MinecraftText text={r.name} /> : <span className="text-[#f0ece4]/80">{stripMinecraftColors(r.name) || r.name}</span>}</div>
+                            <div className="text-[9px] text-[#7a756b]">{r.type}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Past unlocks */}
+                {pastUnlocks.length > 0 && (
+                  <div>
+                    <div className="text-[9px] uppercase tracking-widest text-[#7a756b]/60 mb-2">Unlocked</div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                      {pastUnlocks.map((entry) =>
+                        entry.rewards.map((r, i) => (
+                          <div key={`${entry.level}-${i}`} className="flex items-center gap-2 rounded-lg bg-[rgba(255,184,0,0.02)] border border-[rgba(255,184,0,0.05)] px-3 py-2">
+                            <RewardIcon reward={r} />
+                            <div className="min-w-0">
+                              <div className="text-xs truncate opacity-60">{r.type === "Hub Title" ? <MinecraftText text={r.name} /> : <span className="text-[#f0ece4]">{stripMinecraftColors(r.name) || r.name}</span>}</div>
+                              <div className="text-[9px] text-[#7a756b]/60">{r.type} · Lv {entry.level}</div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }

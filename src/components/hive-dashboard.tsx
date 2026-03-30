@@ -61,26 +61,33 @@ export function HiveDashboard() {
 
   const loadGameStats = useCallback(
     async (gameId: string, username: string) => {
-      if (gameStats[gameId] !== undefined) return;
-      setLoadingGame(gameId);
+      const statsAlreadyLoaded = gameStats[gameId] !== undefined;
+      const metaAlreadyLoaded = gameMeta[gameId] !== undefined;
+      if (statsAlreadyLoaded && metaAlreadyLoaded) return;
+
+      if (!statsAlreadyLoaded) setLoadingGame(gameId);
       try {
         const [stats, monthly, meta] = await Promise.all([
-          getGameStats(gameId, username),
-          getMonthlyStats(gameId, username),
-          gameMeta[gameId] !== undefined ? Promise.resolve(gameMeta[gameId]) : getGameMeta(gameId),
+          statsAlreadyLoaded ? Promise.resolve(gameStats[gameId]) : getGameStats(gameId, username),
+          statsAlreadyLoaded ? Promise.resolve(null) : getMonthlyStats(gameId, username),
+          metaAlreadyLoaded ? Promise.resolve(gameMeta[gameId]) : getGameMeta(gameId).catch(() => null),
         ]);
-        setGameStats((prev) => ({ ...prev, [gameId]: stats }));
-        setMonthlyStats((prev) => ({ ...prev, [gameId]: monthly }));
-        setGameMeta((prev) => ({ ...prev, [gameId]: meta }));
+        if (!statsAlreadyLoaded) {
+          setGameStats((prev) => ({ ...prev, [gameId]: stats }));
+          setMonthlyStats((prev) => ({ ...prev, [gameId]: monthly }));
+        }
+        if (!metaAlreadyLoaded) setGameMeta((prev) => ({ ...prev, [gameId]: meta }));
       } catch (err) {
         if (err instanceof RateLimitError) setError("You're being rate limited by the Hive API. Please wait a moment and try again.");
-        setGameStats((prev) => ({ ...prev, [gameId]: null }));
-        setMonthlyStats((prev) => ({ ...prev, [gameId]: null }));
+        if (!statsAlreadyLoaded) {
+          setGameStats((prev) => ({ ...prev, [gameId]: null }));
+          setMonthlyStats((prev) => ({ ...prev, [gameId]: null }));
+        }
       } finally {
         setLoadingGame(null);
       }
     },
-    [gameStats]
+    [gameStats, gameMeta]
   );
 
   const handleSelectPlayer = useCallback(

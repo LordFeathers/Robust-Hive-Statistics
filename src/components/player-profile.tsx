@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import type { PlayerProfile } from "@/lib/hive-api";
 import { formatDate, getDisplayRanks, rankColor, rankDisplayName } from "@/lib/game-config";
+import { MinecraftText, stripMinecraftColors } from "@/lib/minecraft-text";
 
 interface PlayerProfileCardProps {
   profile: PlayerProfile;
@@ -12,76 +13,6 @@ interface PlayerProfileCardProps {
 }
 
 // ─── Minecraft text parser ────────────────────────────────────────────────────
-
-const MC_COLORS: Record<string, string> = {
-  "0": "#000000", "1": "#0000AA", "2": "#00AA00", "3": "#00AAAA",
-  "4": "#AA0000", "5": "#AA00AA", "6": "#FFAA00", "7": "#AAAAAA",
-  "8": "#555555", "9": "#5555FF", "a": "#55FF55", "b": "#55FFFF",
-  "c": "#FF5555", "d": "#FF55FF", "e": "#FFFF55", "f": "#FFFFFF",
-};
-
-// Formatting codes to skip (bold, italic, etc.)
-const MC_FORMAT_CODES = new Set(["k", "l", "m", "n", "o"]);
-
-interface TextSegment { text: string; color?: string }
-
-function parseMinecraftText(raw: string): TextSegment[] {
-  // Strip parenthesised icon glyphs (e.g. "(\ue177)") before parsing so they
-  // don't leave empty "()" behind after the private-use chars are removed.
-  const cleaned = raw
-    .replace(/\([\ue000-\uf8ff]+\)/g, "")
-    .replace(/^\s+/, ""); // trim any leading whitespace left behind
-
-  const segments: TextSegment[] = [];
-  let color: string | undefined;
-  let i = 0;
-
-  while (i < cleaned.length) {
-    const ch = cleaned[i];
-
-    if ((ch === "&" || ch === "§") && i + 1 < raw.length) {
-      const code = raw[i + 1].toLowerCase();
-
-      // Hex color: &x followed by six (&<hex-digit>) pairs = 14 chars total
-      if (code === "x" && i + 13 < cleaned.length) {
-        const hexSeq = cleaned.slice(i + 2, i + 14);
-        if (/^(?:[&§][0-9a-fA-F]){6}$/.test(hexSeq)) {
-          color = "#" + hexSeq.replace(/[&§]/g, "");
-          i += 14;
-          continue;
-        }
-      }
-
-      if (MC_COLORS[code]) {
-        color = MC_COLORS[code];
-      } else if (code === "r") {
-        color = undefined;
-      }
-      i += 2;
-    } else {
-      const start = i;
-      while (i < cleaned.length && cleaned[i] !== "&" && cleaned[i] !== "§") i++;
-      // Strip private-use unicode (Minecraft item icons, etc.)
-      const chunk = cleaned.slice(start, i).replace(/[\ue000-\uf8ff]/g, "");
-      if (chunk) segments.push({ text: chunk, color });
-    }
-  }
-
-  return segments;
-}
-
-function MinecraftText({ text }: { text: string }) {
-  const segments = parseMinecraftText(String(text));
-  return (
-    <>
-      {segments.map((seg, i) => (
-        <span key={i} style={seg.color ? { color: seg.color } : undefined}>
-          {seg.text}
-        </span>
-      ))}
-    </>
-  );
-}
 
 // ─── Cosmetic item renderer ───────────────────────────────────────────────────
 
@@ -186,19 +117,9 @@ interface CosmeticConfig {
   useMinecraft?: boolean;
 }
 
-// Strip all Minecraft color/format codes and private-use chars to get plain text
-function stripMinecraft(text: string): string {
-  return text
-    .replace(/[&§]x(?:[&§][0-9a-fA-F]){6}/gi, "")
-    .replace(/[&§][0-9a-zA-Z]/g, "")
-    .replace(/[\ue000-\uf8ff]/g, "")
-    .replace(/\\\//g, "/")
-    .trim();
-}
-
 function isKdTitle(title: unknown): boolean {
   if (typeof title !== "string") return false;
-  return /k[\\/]d\s*ratio/i.test(stripMinecraft(title));
+  return /k[\\/]d\s*ratio/i.test(stripMinecraftColors(title));
 }
 
 function CosmeticPanel({

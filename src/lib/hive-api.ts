@@ -116,12 +116,23 @@ export async function getMonthlyStats(
   return fetchApi(`game/monthly/player/${game}/${encodeURIComponent(identifier)}`);
 }
 
+export interface LevelReward {
+  name: string;
+  icon: string | null;
+  type: string;
+  global: boolean;
+}
+
 export interface GameMeta {
   maxLevel: number;
   allowPrestiging: boolean;
   maxPrestige?: number;
   /** Keys are XP thresholds (as strings), values are level numbers */
   experienceToLevel: Record<string, number>;
+  /** Keys are level numbers (as strings), values are arrays of rewards */
+  levelUnlocks: Record<string, LevelReward[]>;
+  /** Keys are cosmetic type names */
+  levelUnlockTypes: Record<string, { name: string; icon: string; default: string | null }>;
 }
 
 export async function getGameMeta(gameId: string): Promise<GameMeta | null> {
