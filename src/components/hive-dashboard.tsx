@@ -1,0 +1,319 @@
+"use client";
+
+import { useState, useCallback, useEffect } from "react";
+import { PlayerSearch } from "@/components/player-search";
+import { PlayerProfileCard } from "@/components/player-profile";
+import { GameStatsPanel } from "@/components/game-stats-panel";
+import {
+  getPlayerProfile,
+  getGameStats,
+  getMonthlyStats,
+  getGlobalStats,
+  getAllGameStats,
+  type PlayerProfile,
+  type GameStats,
+  type MonthlyStats,
+  type GlobalStats,
+} from "@/lib/hive-api";
+import { GAME_CONFIGS, type GameConfig, formatNumber } from "@/lib/game-config";
+
+export function HiveDashboard() {
+  const [profile, setProfile] = useState<PlayerProfile | null>(null);
+  const [gameStats, setGameStats] = useState<Record<string, GameStats | null>>({});
+  const [monthlyStats, setMonthlyStats] = useState<Record<string, MonthlyStats | null>>({});
+  const [activeGame, setActiveGame] = useState<string>("bed");
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [loadingGame, setLoadingGame] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [searched, setSearched] = useState(false);
+  const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
+  const [allGamesSummary, setAllGamesSummary] = useState<Record<string, GameStats | null> | null>(null);
+
+  useEffect(() => {
+    getGlobalStats().then(setGlobalStats);
+  }, []);
+
+  // Load player from URL on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const player = params.get("player");
+    if (player) handleSelectPlayer(player);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const loadGameStats = useCallback(
+    async (gameId: string, username: string) => {
+      if (gameStats[gameId] !== undefined) return;
+      setLoadingGame(gameId);
+      try {
+        const [stats, monthly] = await Promise.all([
+          getGameStats(gameId, username),
+          getMonthlyStats(gameId, username),
+        ]);
+        setGameStats((prev) => ({ ...prev, [gameId]: stats }));
+        setMonthlyStats((prev) => ({ ...prev, [gameId]: monthly }));
+      } catch {
+        setGameStats((prev) => ({ ...prev, [gameId]: null }));
+        setMonthlyStats((prev) => ({ ...prev, [gameId]: null }));
+      } finally {
+        setLoadingGame(null);
+      }
+    },
+    [gameStats]
+  );
+
+  const handleSelectPlayer = useCallback(
+    async (username: string) => {
+      setLoadingProfile(true);
+      setError(null);
+      setSearched(true);
+      setProfile(null);
+      setGameStats({});
+      setMonthlyStats({});
+      setAllGamesSummary(null);
+      setActiveGame("bed");
+
+      try {
+        const data = await getPlayerProfile(username);
+        if (!data || !data.main) {
+          setError("Player not found. Check the username and try again.");
+          setLoadingProfile(false);
+          return;
+        }
+        setProfile(data.main);
+        setLoadingProfile(false);
+
+        // Update URL
+        const url = new URL(window.location.href);
+        url.searchParams.set("player", data.main.username_cc);
+        window.history.replaceState({}, "", url.toString());
+
+        // Pre-load default game stats
+        setLoadingGame("bed");
+        const [bedStats, bedMonthly] = await Promise.all([
+          getGameStats("bed", username),
+          getMonthlyStats("bed", username),
+        ]);
+        setGameStats({ bed: bedStats });
+        setMonthlyStats({ bed: bedMonthly });
+        setLoadingGame(null);
+
+        // Load all games in background for summary
+        const gameIds = GAME_CONFIGS.map((g) => g.id);
+        getAllGameStats(username, gameIds).then((all) => {
+          setAllGamesSummary(all);
+          setGameStats((prev) => ({ ...all, ...prev }));
+        });
+      } catch {
+        setError("Something went wrong. Please try again.");
+        setLoadingProfile(false);
+      }
+    },
+    []
+  );
+
+  const handleGameChange = useCallback(
+    (gameId: string) => {
+      setActiveGame(gameId);
+      if (profile && gameStats[gameId] === undefined) {
+        loadGameStats(gameId, profile.username_cc);
+      }
+    },
+    [profile, gameStats, loadGameStats]
+  );
+
+  const activeConfig = GAME_CONFIGS.find((g) => g.id === activeGame) as GameConfig;
+
+  // Compute all-games summary stats
+  const summaryStats = allGamesSummary
+    ? (() => {
+        const games = GAME_CONFIGS.map((g) => {
+          const s = allGamesSummary[g.id];
+          return { config: g, stats: s };
+        }).filter((g) => g.stats?.played);
+
+        const totalWins = games.reduce((acc, g) => acc + (g.stats?.victories || 0), 0);
+        const totalGames = games.reduce((acc, g) => acc + (g.stats?.played || 0), 0);
+        const bestGame = games.reduce<{ config: GameConfig; wr: number } | null>((best, g) => {
+          if (!g.stats?.played) return best;
+          const wr = (g.stats.victories / g.stats.played) * 100;
+          return !best || wr > best.wr ? { config: g.config, wr } : best;
+        }, null);
+
+        return { totalWins, totalGames, bestGame, gamesPlayed: games.length };
+      })()
+    : null;
+
+  return (
+    <div className="relative z-10 mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+      {/* Header */}
+      <header className="mb-10 text-center">
+        <div className="inline-flex items-center gap-3 mb-4">
+          <div className="relative">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#FFB800] to-[#FF8C00] flex items-center justify-center">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-black">
+                <path
+                  d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <div className="absolute -inset-1 rounded-xl bg-[#FFB800]/20 blur-md -z-10" />
+          </div>
+          <h1 className="font-heading text-3xl sm:text-4xl font-bold tracking-wide text-[#f0ece4]">
+            HIVE<span className="text-[#FFB800]"> STATS</span>
+          </h1>
+        </div>
+        <p className="text-sm text-[#7a756b] max-w-md mx-auto">
+          Look up player statistics for The Hive Minecraft Bedrock server
+        </p>
+        {globalStats && (
+          <p className="mt-2 text-xs text-[#7a756b]/50">
+            <span className="text-[#FFB800]/60">{formatNumber(globalStats.unique_players.global)}</span> unique players tracked
+          </p>
+        )}
+      </header>
+
+      {/* Search */}
+      <div className="flex justify-center mb-8">
+        <PlayerSearch onSelect={handleSelectPlayer} isLoading={loadingProfile} />
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div className="mx-auto max-w-xl mb-8 animate-fade-in-up">
+          <div className="rounded-xl border border-red-500/20 bg-red-500/5 px-5 py-4 text-center text-sm text-red-400">
+            {error}
+          </div>
+        </div>
+      )}
+
+      {/* Loading skeleton */}
+      {loadingProfile && (
+        <div className="space-y-4 animate-fade-in-up">
+          <div className="h-40 rounded-2xl bg-[rgba(255,184,0,0.03)] shimmer" />
+          <div className="h-12 rounded-xl bg-[rgba(255,184,0,0.03)] shimmer" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-24 rounded-xl bg-[rgba(255,184,0,0.03)] shimmer" />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Profile + Game Stats */}
+      {profile && !loadingProfile && (
+        <div className="space-y-6">
+          <PlayerProfileCard profile={profile} />
+
+          {/* All-games summary */}
+          {summaryStats && (
+            <div className="animate-fade-in-up grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="rounded-xl border border-[rgba(255,184,0,0.06)] bg-[rgba(255,184,0,0.02)] px-4 py-3 text-center">
+                <div className="font-mono text-xl font-bold text-[#f0ece4]">{formatNumber(summaryStats.totalWins)}</div>
+                <div className="mt-0.5 text-[10px] uppercase tracking-widest text-[#7a756b]">Total Wins</div>
+              </div>
+              <div className="rounded-xl border border-[rgba(255,184,0,0.06)] bg-[rgba(255,184,0,0.02)] px-4 py-3 text-center">
+                <div className="font-mono text-xl font-bold text-[#f0ece4]">{formatNumber(summaryStats.totalGames)}</div>
+                <div className="mt-0.5 text-[10px] uppercase tracking-widest text-[#7a756b]">Total Games</div>
+              </div>
+              <div className="rounded-xl border border-[rgba(255,184,0,0.06)] bg-[rgba(255,184,0,0.02)] px-4 py-3 text-center">
+                <div className="font-mono text-xl font-bold text-[#f0ece4]">
+                  {summaryStats.totalGames ? ((summaryStats.totalWins / summaryStats.totalGames) * 100).toFixed(1) : "0"}%
+                </div>
+                <div className="mt-0.5 text-[10px] uppercase tracking-widest text-[#7a756b]">Overall Win Rate</div>
+              </div>
+              <div className="rounded-xl border border-[rgba(255,184,0,0.06)] bg-[rgba(255,184,0,0.02)] px-4 py-3 text-center">
+                {summaryStats.bestGame ? (
+                  <>
+                    <div className="font-mono text-xl font-bold" style={{ color: summaryStats.bestGame.config.color }}>
+                      {summaryStats.bestGame.config.icon} {summaryStats.bestGame.wr.toFixed(1)}%
+                    </div>
+                    <div className="mt-0.5 text-[10px] uppercase tracking-widest text-[#7a756b]">Best Win Rate</div>
+                  </>
+                ) : (
+                  <div className="text-[#7a756b] text-xs">—</div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Game selector tabs */}
+          <div className="animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+            <div className="flex flex-wrap gap-1">
+              {GAME_CONFIGS.map((game) => {
+                const isActive = activeGame === game.id;
+                const hasData = gameStats[game.id]?.played;
+                return (
+                  <button
+                    key={game.id}
+                    onClick={() => handleGameChange(game.id)}
+                    className={`game-tab flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-all ${
+                      isActive
+                        ? "bg-[rgba(255,184,0,0.1)] text-[#FFB800]"
+                        : "text-[#7a756b] hover:text-[#f0ece4]/80 hover:bg-[rgba(255,184,0,0.03)]"
+                    }`}
+                  >
+                    <span className="text-base">{game.icon}</span>
+                    <span className="hidden sm:inline">{game.name}</span>
+                    <span className="sm:hidden">{game.shortName}</span>
+                    {hasData && (
+                      <span
+                        className={`ml-1 inline-block h-1.5 w-1.5 rounded-full ${
+                          isActive ? "bg-[#FFB800]" : "bg-[#7a756b]/40"
+                        }`}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Active game stats */}
+          <div style={{ animationDelay: "0.2s" }}>
+            <GameStatsPanel
+              config={activeConfig}
+              stats={gameStats[activeGame] ?? null}
+              loading={loadingGame === activeGame}
+              uniquePlayers={globalStats?.unique_players[activeGame] ?? null}
+              monthlyStats={monthlyStats[activeGame] ?? null}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!searched && !loadingProfile && (
+        <div className="mt-16 text-center animate-fade-in-up">
+          <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-[rgba(255,184,0,0.08)] to-[rgba(255,140,0,0.04)]">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="text-[#FFB800]/40">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M2 17l10 5 10-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M2 12l10 5 10-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <p className="text-[#7a756b] text-sm mb-2">
+            Search for a Hive Bedrock player to view their stats
+          </p>
+          <p className="text-[#7a756b]/50 text-xs">
+            Supports all 14 game modes including Bed Wars, Treasure Wars, SkyWars, and more
+          </p>
+        </div>
+      )}
+
+      {/* Footer */}
+      <footer className="mt-16 text-center text-xs text-[#7a756b]/40">
+        <p>
+          Data from{" "}
+          <span className="text-[#FFB800]/30">api.playhive.com</span>
+          {" · "}Not affiliated with Hive Games
+        </p>
+        <p className="mt-1">Made by Yaakov Sassoon</p>
+      </footer>
+    </div>
+  );
+}
