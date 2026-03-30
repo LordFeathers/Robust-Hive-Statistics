@@ -282,8 +282,7 @@ export function HiveDashboard() {
                     <div className="font-mono text-xl font-bold" style={{ color: summaryStats.bestGame.config.color }}>
                       {summaryStats.bestGame.config.icon} {summaryStats.bestGame.wr.toFixed(1)}%
                     </div>
-                    <div className="mt-0.5 text-[10px] uppercase tracking-widest text-[#7a756b]">Best Win Rate</div>
-                    <div className="mt-0.5 text-[9px] text-[#7a756b]/70 truncate">{summaryStats.bestGame.config.name}</div>
+                    <div className="mt-0.5 text-[10px] uppercase tracking-widest text-[#7a756b]">Best Win Rate · <span className="normal-case">{summaryStats.bestGame.config.name}</span></div>
                   </>
                 ) : (
                   <div className="text-[#7a756b] text-xs">—</div>

@@ -218,9 +218,7 @@ function CosmeticPanel({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
       {items.map((item, i) => {
-        const itemKey = item !== null && typeof item === "object"
-          ? String((item as Record<string, unknown>).name ?? i)
-          : String(item);
+        const itemKey = `${i}-${item !== null && typeof item === "object" ? String((item as Record<string, unknown>).name ?? i) : String(item)}`;
         return (
         <div
           key={itemKey}
@@ -254,7 +252,9 @@ export function PlayerProfileCard({ profile, kdRatio, totalWins }: PlayerProfile
       key: "hub_titles",
       label: "Hub Titles",
       count: profile.hub_title_count,
-      items: profile.hub_title_unlocked || [],
+      items: (profile.hub_title_unlocked || []).map((t) =>
+        typeof t === "string" ? t : String((t as Record<string, unknown>).name ?? t)
+      ),
       useMinecraft: true,
     },
     {
