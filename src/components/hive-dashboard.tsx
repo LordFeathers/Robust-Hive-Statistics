@@ -4,12 +4,14 @@ import { useState, useCallback, useEffect } from "react";
 import { PlayerSearch } from "@/components/player-search";
 import { PlayerProfileCard } from "@/components/player-profile";
 import { GameStatsPanel } from "@/components/game-stats-panel";
+import { ErrorBoundary } from "@/components/error-boundary";
 import {
   getPlayerProfile,
   getGameStats,
   getMonthlyStats,
   getGlobalStats,
   getAllGameStats,
+  RateLimitError,
   type PlayerProfile,
   type GameStats,
   type MonthlyStats,
@@ -28,9 +30,22 @@ export function HiveDashboard() {
   const [searched, setSearched] = useState(false);
   const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
   const [allGamesSummary, setAllGamesSummary] = useState<Record<string, GameStats | null> | null>(null);
+  const [isOffline, setIsOffline] = useState(false);
 
   useEffect(() => {
     getGlobalStats().then(setGlobalStats);
+  }, []);
+
+  useEffect(() => {
+    const handleOffline = () => setIsOffline(true);
+    const handleOnline = () => setIsOffline(false);
+    setIsOffline(!navigator.onLine);
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+    return () => {
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+    };
   }, []);
 
   // Load player from URL on mount
@@ -52,7 +67,8 @@ export function HiveDashboard() {
         ]);
         setGameStats((prev) => ({ ...prev, [gameId]: stats }));
         setMonthlyStats((prev) => ({ ...prev, [gameId]: monthly }));
-      } catch {
+      } catch (err) {
+        if (err instanceof RateLimitError) setError("You're being rate limited by the Hive API. Please wait a moment and try again.");
         setGameStats((prev) => ({ ...prev, [gameId]: null }));
         setMonthlyStats((prev) => ({ ...prev, [gameId]: null }));
       } finally {
@@ -104,8 +120,12 @@ export function HiveDashboard() {
           setAllGamesSummary(all);
           setGameStats((prev) => ({ ...all, ...prev }));
         });
-      } catch {
-        setError("Something went wrong. Please try again.");
+      } catch (err) {
+        if (err instanceof RateLimitError) {
+          setError("You're being rate limited by the Hive API. Please wait a moment and try again.");
+        } else {
+          setError("Something went wrong. Please try again.");
+        }
         setLoadingProfile(false);
       }
     },
@@ -177,6 +197,15 @@ export function HiveDashboard() {
         )}
       </header>
 
+      {/* Offline banner */}
+      {isOffline && (
+        <div className="mx-auto max-w-xl mb-6 animate-fade-in-up">
+          <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/5 px-5 py-3 text-center text-sm text-yellow-400">
+            You appear to be offline. Stats may not load until you reconnect.
+          </div>
+        </div>
+      )}
+
       {/* Search */}
       <div className="flex justify-center mb-8">
         <PlayerSearch onSelect={handleSelectPlayer} isLoading={loadingProfile} />
@@ -207,7 +236,9 @@ export function HiveDashboard() {
       {/* Profile + Game Stats */}
       {profile && !loadingProfile && (
         <div className="space-y-6">
-          <PlayerProfileCard profile={profile} />
+          <ErrorBoundary>
+            <PlayerProfileCard profile={profile} />
+          </ErrorBoundary>
 
           {/* All-games summary */}
           {summaryStats && (
@@ -251,6 +282,11 @@ export function HiveDashboard() {
                   <button
                     key={game.id}
                     onClick={() => handleGameChange(game.id)}
+                    onMouseEnter={() => {
+                      if (profile && gameStats[game.id] === undefined) {
+                        loadGameStats(game.id, profile.username_cc);
+                      }
+                    }}
                     className={`game-tab flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-all ${
                       isActive
                         ? "bg-[rgba(255,184,0,0.1)] text-[#FFB800]"
@@ -275,13 +311,15 @@ export function HiveDashboard() {
 
           {/* Active game stats */}
           <div style={{ animationDelay: "0.2s" }}>
-            <GameStatsPanel
-              config={activeConfig}
-              stats={gameStats[activeGame] ?? null}
-              loading={loadingGame === activeGame}
-              uniquePlayers={globalStats?.unique_players[activeGame] ?? null}
-              monthlyStats={monthlyStats[activeGame] ?? null}
-            />
+            <ErrorBoundary>
+              <GameStatsPanel
+                config={activeConfig}
+                stats={gameStats[activeGame] ?? null}
+                loading={loadingGame === activeGame}
+                uniquePlayers={globalStats?.unique_players[activeGame] ?? null}
+                monthlyStats={monthlyStats[activeGame] ?? null}
+              />
+            </ErrorBoundary>
           </div>
         </div>
       )}

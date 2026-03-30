@@ -54,8 +54,15 @@ export interface MonthlyStats {
   [key: string]: number | string | undefined;
 }
 
+export class RateLimitError extends Error {
+  constructor() {
+    super("rate_limited");
+  }
+}
+
 async function fetchApi<T>(path: string): Promise<T | null> {
   const res = await fetch(`${API_BASE}/${path}`);
+  if (res.status === 429) throw new RateLimitError();
   if (!res.ok) return null;
   return res.json();
 }
