@@ -41,12 +41,17 @@ export function PlayerSearch({ onSelect, isLoading, value }: PlayerSearchProps) 
   const [showRecentDropdown, setShowRecentDropdown] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
+  const suppressSearchRef = useRef(false);
 
   useEffect(() => {
     setRecentPlayers(loadRecent());
   }, []);
 
   const doSearch = useCallback(async (q: string) => {
+    if (suppressSearchRef.current) {
+      suppressSearchRef.current = false;
+      return;
+    }
     if (q.length < 4) {
       setResults([]);
       setShowDropdown(false);
@@ -90,8 +95,10 @@ export function PlayerSearch({ onSelect, isLoading, value }: PlayerSearchProps) 
   function handleSubmit(username?: string) {
     const target = username || query.trim();
     if (!target) return;
+    suppressSearchRef.current = true;
     setShowDropdown(false);
     setShowRecentDropdown(false);
+    setResults([]);
     saveRecent(target);
     setRecentPlayers(loadRecent());
     onSelect(target);
