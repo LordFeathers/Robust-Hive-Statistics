@@ -312,7 +312,7 @@ export function HiveDashboard() {
           <span className="text-[#FFB800]/30">api.playhive.com</span>
           {" · "}Not affiliated with Hive Games
         </p>
-        <p className="mt-1">Made by Yaakov Sassoon</p>
+        <p className="mt-1">Made with ❤️ by Yaakov Sassoon</p>
       </footer>
     </div>
   );
