@@ -268,16 +268,16 @@ export function HiveDashboard() {
           {summaryStats && (
             <div className="animate-fade-in-up grid grid-cols-2 sm:grid-cols-5 gap-3">
               <div className="rounded-xl border border-[rgba(255,184,0,0.06)] bg-[rgba(255,184,0,0.02)] px-4 py-3 text-center">
-                <div className="font-mono text-xl font-bold text-[#f0ece4]">{formatNumber(summaryStats.totalWins)}</div>
+                <div className="font-mono text-xl font-bold text-[#f0ece4]">🏆 {formatNumber(summaryStats.totalWins)}</div>
                 <div className="mt-0.5 text-[10px] uppercase tracking-widest text-[#7a756b]">Total Wins</div>
               </div>
               <div className="rounded-xl border border-[rgba(255,184,0,0.06)] bg-[rgba(255,184,0,0.02)] px-4 py-3 text-center">
-                <div className="font-mono text-xl font-bold text-[#f0ece4]">{formatNumber(summaryStats.totalGames)}</div>
+                <div className="font-mono text-xl font-bold text-[#f0ece4]">🎮 {formatNumber(summaryStats.totalGames)}</div>
                 <div className="mt-0.5 text-[10px] uppercase tracking-widest text-[#7a756b]">Total Games</div>
               </div>
               <div className="rounded-xl border border-[rgba(255,184,0,0.06)] bg-[rgba(255,184,0,0.02)] px-4 py-3 text-center">
                 <div className="font-mono text-xl font-bold text-[#f0ece4]">
-                  {summaryStats.totalGames ? ((summaryStats.totalWins / summaryStats.totalGames) * 100).toFixed(1) : "0"}%
+                  📊 {summaryStats.totalGames ? ((summaryStats.totalWins / summaryStats.totalGames) * 100).toFixed(1) : "0"}%
                 </div>
                 <div className="mt-0.5 text-[10px] uppercase tracking-widest text-[#7a756b]">Overall Win Rate</div>
               </div>
