@@ -512,7 +512,18 @@ export function rankColor(rank: string): string {
     case "PLUS":
       return "#55FF55";
     case "VIP":
-      return "#a78bfa";
+      return "#FF55FF";
+    case "YOUTUBE":
+    case "YOUTUBER":
+      return "#FF0000";
+    case "STREAMER":
+      return "#9146FF";
+    case "TIKTOK":
+      return "#69C9D0";
+    case "MODERATOR":
+      return "#00AAAA";
+    case "HELPER":
+      return "#5555FF";
     default:
       return "#9ca3af";
   }
@@ -526,7 +537,60 @@ export function rankDisplayName(rank: string): string {
       return "Hive+";
     case "VIP":
       return "VIP";
+    case "YOUTUBE":
+    case "YOUTUBER":
+      return "YouTube";
+    case "STREAMER":
+      return "Streamer";
+    case "TIKTOK":
+      return "TikTok";
+    case "MODERATOR":
+      return "Moderator";
+    case "HELPER":
+      return "Helper";
     default:
       return "Regular";
   }
+}
+
+// Priority: lower number = shown first / considered "higher"
+const RANK_PRIORITY: Record<string, number> = {
+  VIP:       0,
+  MODERATOR: 1,
+  HELPER:    2,
+  YOUTUBE:   3,
+  YOUTUBER:  3,
+  TIKTOK:    4,
+  STREAMER:  5,
+  ULTIMATE:  6,
+  PLUS:      7,
+};
+
+const IGNORED_RANKS = new Set(["REGULAR", "DEFAULT"]);
+
+/**
+ * Returns the ordered list of ranks to display for a player.
+ * - Passes through whatever the API returns, ignoring only "REGULAR"/"DEFAULT".
+ * - If both ULTIMATE and PLUS are present, PLUS is dropped.
+ * - Known ranks are sorted by priority; unknown ranks appear at the end.
+ * - Returns ["REGULAR"] if the player has no other rank.
+ */
+export function getDisplayRanks(rank: string, paidRanks: string[]): string[] {
+  const all = new Set<string>();
+  const r = rank?.toUpperCase();
+  if (r && !IGNORED_RANKS.has(r)) all.add(r);
+  for (const p of paidRanks ?? []) {
+    const up = p.toUpperCase();
+    if (!IGNORED_RANKS.has(up)) all.add(up);
+  }
+
+  if (all.has("ULTIMATE") && all.has("PLUS")) all.delete("PLUS");
+
+  if (all.size === 0) return ["REGULAR"];
+
+  return [...all].sort((a, b) => {
+    const pa = RANK_PRIORITY[a] ?? 99;
+    const pb = RANK_PRIORITY[b] ?? 99;
+    return pa - pb;
+  });
 }

@@ -256,7 +256,7 @@ export function HiveDashboard() {
       {profile && !loadingProfile && (
         <div className="space-y-6">
           <ErrorBoundary>
-            <PlayerProfileCard profile={profile} kdRatio={summaryStats?.kdRatio ?? null} />
+            <PlayerProfileCard profile={profile} kdRatio={summaryStats?.kdRatio ?? null} totalWins={summaryStats?.totalWins ?? null} />
           </ErrorBoundary>
 
           {/* All-games summary */}
@@ -283,6 +283,7 @@ export function HiveDashboard() {
                       {summaryStats.bestGame.config.icon} {summaryStats.bestGame.wr.toFixed(1)}%
                     </div>
                     <div className="mt-0.5 text-[10px] uppercase tracking-widest text-[#7a756b]">Best Win Rate</div>
+                    <div className="mt-0.5 text-[9px] text-[#7a756b]/70 truncate">{summaryStats.bestGame.config.name}</div>
                   </>
                 ) : (
                   <div className="text-[#7a756b] text-xs">—</div>

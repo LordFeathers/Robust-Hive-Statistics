@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Dark background circle -->
+  <rect width="32" height="32" rx="8" fill="#111114"/>
+  <!-- Honeycomb hexagon -->
+  <polygon
+    points="16,3 27,9.5 27,22.5 16,29 5,22.5 5,9.5"
+    fill="none"
+    stroke="#FFB800"
+    stroke-width="2"
+    stroke-linejoin="round"
+  />
+  <!-- Bold H -->
+  <text
+    x="16"
+    y="21.5"
+    text-anchor="middle"
+    font-family="Arial, sans-serif"
+    font-size="14"
+    font-weight="700"
+    fill="#FFB800"
+  >H</text>
+</svg>

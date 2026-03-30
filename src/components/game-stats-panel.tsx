@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   type GameConfig,
   formatStatValue,
@@ -24,31 +23,6 @@ export function GameStatsPanel({
   uniquePlayers,
   monthlyStats,
 }: GameStatsPanelProps) {
-  const [copied, setCopied] = useState(false);
-
-  function copyStats() {
-    if (!stats) return;
-    const xpLvl = stats.xp
-      ? Math.floor((-1 + Math.sqrt(1 + (8 * stats.xp) / config.xpConstant)) / 2) + 1
-      : 1;
-    const winRate = stats.played ? ((stats.victories / stats.played) * 100).toFixed(1) : "0";
-    const computed =
-      config.computedStats
-        ?.map((cs) => ({ label: cs.label, value: cs.compute(stats as unknown as Record<string, number>) }))
-        .filter((c) => c.value !== null) || [];
-    const lines = [
-      `${config.name} Stats`,
-      `Level ${xpLvl} · ${formatNumber(stats.xp || 0)} XP`,
-      `${formatNumber(stats.played)} games · ${formatNumber(stats.victories)} wins (${winRate}% WR)`,
-    ];
-    const kd = computed.find((c) => c.label === "K/D Ratio");
-    if (kd) lines.push(`K/D: ${kd.value!.toFixed(2)}`);
-    if (monthlyStats) lines.push(`Monthly Rank: #${monthlyStats.human_index.toLocaleString()}`);
-    navigator.clipboard.writeText(lines.join("\n")).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  }
 
   if (loading) {
     return (
@@ -148,35 +122,11 @@ export function GameStatsPanel({
             </span>
           </>
         )}
-        <div className="ml-auto flex items-center gap-3">
-          {uniquePlayers && (
-            <span className="text-xs text-[#7a756b]">
-              <span className="text-[#f0ece4]/40">{formatNumber(uniquePlayers)}</span> unique players
-            </span>
-          )}
-          <button
-            onClick={copyStats}
-            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs text-[#7a756b] hover:text-[#f0ece4]/60 hover:bg-[rgba(255,184,0,0.05)] transition-all"
-            title="Copy stats"
-          >
-            {copied ? (
-              <>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 6 9 17l-5-5" />
-                </svg>
-                Copied
-              </>
-            ) : (
-              <>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
-                  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-                </svg>
-                Copy
-              </>
-            )}
-          </button>
-        </div>
+        {uniquePlayers && (
+          <span className="ml-auto text-xs text-[#7a756b]">
+            <span className="text-[#f0ece4]/40">{formatNumber(uniquePlayers)}</span> unique players
+          </span>
+        )}
       </div>
 
       {/* Monthly stats */}

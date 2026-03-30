@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import type { PlayerProfile } from "@/lib/hive-api";
-import { formatDate, rankColor, rankDisplayName } from "@/lib/game-config";
+import { formatDate, getDisplayRanks, rankColor, rankDisplayName } from "@/lib/game-config";
 
 interface PlayerProfileCardProps {
   profile: PlayerProfile;
   kdRatio?: number | null;
+  totalWins?: number | null;
 }
 
 // ─── Minecraft text parser ────────────────────────────────────────────────────
@@ -242,13 +243,11 @@ function CosmeticPanel({
 
 // ─── Profile card ─────────────────────────────────────────────────────────────
 
-export function PlayerProfileCard({ profile, kdRatio }: PlayerProfileCardProps) {
+export function PlayerProfileCard({ profile, kdRatio, totalWins }: PlayerProfileCardProps) {
   const [openCosmetic, setOpenCosmetic] = useState<string | null>(null);
 
-  const topRank =
-    profile.paid_ranks?.length > 0
-      ? profile.paid_ranks[profile.paid_ranks.length - 1]
-      : profile.rank || "REGULAR";
+  const displayRanks = getDisplayRanks(profile.rank, profile.paid_ranks ?? []);
+  const topRank = displayRanks[0];
 
   const cosmetics: CosmeticConfig[] = [
     {
@@ -268,10 +267,7 @@ export function PlayerProfileCard({ profile, kdRatio }: PlayerProfileCardProps) 
       key: "costumes",
       label: "Costumes",
       count: profile.costume_count,
-      items: (profile.costume_unlocked || []).map((name) => ({
-        name,
-        icon: cdnIcon("costume", name),
-      })),
+      items: profile.costume_unlocked || [],
     },
     {
       key: "hats",
@@ -354,20 +350,25 @@ export function PlayerProfileCard({ profile, kdRatio }: PlayerProfileCardProps) 
                 >
                   {profile.username_cc}
                 </h2>
-                <Badge
-                  className="border-0 px-2.5 py-0.5 font-heading text-xs font-semibold tracking-wider"
-                  style={{
-                    backgroundColor: rankColor(topRank) + "18",
-                    color: rankColor(topRank),
-                  }}
-                >
-                  {rankDisplayName(topRank)}
-                </Badge>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {displayRanks.map((rank) => (
+                    <Badge
+                      key={rank}
+                      className="border-0 px-2.5 py-0.5 font-heading text-xs font-semibold tracking-wider"
+                      style={{
+                        backgroundColor: rankColor(rank) + "18",
+                        color: rankColor(rank),
+                      }}
+                    >
+                      {rankDisplayName(rank)}
+                    </Badge>
+                  ))}
+                </div>
               </div>
 
               {profile.equipped_hub_title && (
                 <p className="mt-1 text-sm">
-                  <MinecraftText text={String(profile.equipped_hub_title)} />
+                  <MinecraftText text={String(profile.equipped_hub_title).replace(/\{0\}/g, totalWins != null ? totalWins.toLocaleString() : "0")} />
                 </p>
               )}
 
