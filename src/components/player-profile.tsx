@@ -92,6 +92,45 @@ const RARITY_COLORS: Record<string, string> = {
   COMMON:    "#AAAAAA",
 };
 
+// Convert a display name to a CDN-compatible kebab slug
+function nameToSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+}
+
+function cdnIcon(type: "mount" | "costume" | "pet", name: string): string {
+  return `https://cdn.playhive.com/avatars/${type}-${nameToSlug(name)}.png`;
+}
+
+const failedIconUrls = new Set<string>();
+
+function CosmeticIcon({ src, name }: { src: string | null; name: string }) {
+  const [failed, setFailed] = useState(() => !src || failedIconUrls.has(src));
+
+  if (!src || failed) {
+    return (
+      <div className="h-10 w-10 shrink-0 rounded-lg bg-[rgba(255,184,0,0.08)] flex items-center justify-center">
+        <span className="text-[10px] font-semibold text-[#FFB800]/60 leading-none">
+          {name.slice(0, 2).toUpperCase()}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={name}
+      className="h-10 w-10 shrink-0 rounded-lg object-cover"
+      onError={() => { failedIconUrls.add(src!); setFailed(true); }}
+    />
+  );
+}
+
 // Items from the API can be strings, Minecraft-colored strings, or objects
 // like { url, name } (avatar) or { name, icon, rarity } (hat/backbling).
 function CosmeticItemContent({ item, useMinecraft }: { item: unknown; useMinecraft?: boolean }) {
@@ -102,17 +141,11 @@ function CosmeticItemContent({ item, useMinecraft }: { item: unknown; useMinecra
     const icon = typeof obj.icon === "string" ? obj.icon : null;
     const rarity = typeof obj.rarity === "string" ? obj.rarity.toUpperCase() : null;
     const rarityColor = rarity ? (RARITY_COLORS[rarity] ?? "#AAAAAA") : null;
+    const imgSrc = url || icon;
 
     return (
-      <div className="flex items-center gap-2 min-w-0">
-        {(url || icon) && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={(url || icon)!}
-            alt={name}
-            className="h-6 w-6 shrink-0 rounded object-cover"
-          />
-        )}
+      <div className="flex items-center gap-3 min-w-0">
+        <CosmeticIcon src={imgSrc} name={name} />
         <span className="flex-1 truncate">{name}</span>
         {rarity && (
           <span
@@ -183,9 +216,13 @@ function CosmeticPanel({
   }
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-      {items.map((item, i) => (
+      {items.map((item, i) => {
+        const itemKey = item !== null && typeof item === "object"
+          ? String((item as Record<string, unknown>).name ?? i)
+          : String(item);
+        return (
         <div
-          key={i}
+          key={itemKey}
           className="rounded-lg bg-[rgba(255,184,0,0.02)] border border-[rgba(255,184,0,0.05)] px-3 py-2 text-sm text-[#f0ece4]/80 overflow-hidden"
         >
           <div className="flex items-center gap-2">
@@ -197,7 +234,8 @@ function CosmeticPanel({
             <CosmeticItemContent item={item} useMinecraft={useMinecraft} />
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -230,8 +268,10 @@ export function PlayerProfileCard({ profile, kdRatio }: PlayerProfileCardProps) 
       key: "costumes",
       label: "Costumes",
       count: profile.costume_count,
-      items: profile.costume_unlocked || [],
-      useMinecraft: true,
+      items: (profile.costume_unlocked || []).map((name) => ({
+        name,
+        icon: cdnIcon("costume", name),
+      })),
     },
     {
       key: "hats",
@@ -249,8 +289,19 @@ export function PlayerProfileCard({ profile, kdRatio }: PlayerProfileCardProps) 
       key: "mounts",
       label: "Mounts",
       count: profile.mounts?.length || 0,
-      items: profile.mounts || [],
-      useMinecraft: true,
+      items: (profile.mounts || []).map((name) => ({
+        name,
+        icon: cdnIcon("mount", name),
+      })),
+    },
+    {
+      key: "pets",
+      label: "Pets",
+      count: profile.pets?.length || 0,
+      items: (profile.pets || []).map((name) => ({
+        name,
+        icon: cdnIcon("pet", name),
+      })),
     },
   ];
 
@@ -354,7 +405,7 @@ export function PlayerProfileCard({ profile, kdRatio }: PlayerProfileCardProps) 
           </div>
 
           {/* Cosmetic tiles */}
-          <div className="mt-5 grid grid-cols-2 sm:grid-cols-6 gap-3">
+          <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
             {cosmetics.map((c) => {
               const isOpen = openCosmetic === c.key;
               const hasItems = c.items.length > 0;
