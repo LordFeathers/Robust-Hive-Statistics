@@ -20,7 +20,7 @@ export interface GameConfig {
 export const GAME_CONFIGS: GameConfig[] = [
   {
     id: "bed",
-    name: "Bed Wars",
+    name: "BedWars",
     shortName: "BED",
     icon: "🛏️",
     color: "#f87171",

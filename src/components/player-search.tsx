@@ -24,10 +24,15 @@ function saveRecent(username: string) {
 interface PlayerSearchProps {
   onSelect: (username: string) => void;
   isLoading: boolean;
+  value?: string;
 }
 
-export function PlayerSearch({ onSelect, isLoading }: PlayerSearchProps) {
-  const [query, setQuery] = useState("");
+export function PlayerSearch({ onSelect, isLoading, value }: PlayerSearchProps) {
+  const [query, setQuery] = useState(value ?? "");
+
+  useEffect(() => {
+    if (value !== undefined) setQuery(value);
+  }, [value]);
   const [results, setResults] = useState<PlayerSearchResult[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [searching, setSearching] = useState(false);

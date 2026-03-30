@@ -168,7 +168,17 @@ export function HiveDashboard() {
     <div className="relative z-10 mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
       <header className="mb-10 text-center">
-        <div className="inline-flex items-center gap-3 mb-4">
+        <button
+          className="inline-flex items-center gap-3 mb-4 cursor-pointer"
+          onClick={() => {
+            setProfile(null);
+            setGameStats({});
+            setMonthlyStats({});
+            setError(null);
+            setSearched(false);
+            setAllGamesSummary(null);
+          }}
+        >
           <div className="relative">
             <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#FFB800] to-[#FF8C00] flex items-center justify-center">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-black">
@@ -186,7 +196,7 @@ export function HiveDashboard() {
           <h1 className="font-heading text-3xl sm:text-4xl font-bold tracking-wide text-[#f0ece4]">
             HIVE<span className="text-[#FFB800]"> STATS</span>
           </h1>
-        </div>
+        </button>
         <p className="text-sm text-[#7a756b] max-w-md mx-auto">
           Look up player statistics for The Hive Minecraft Bedrock server
         </p>
@@ -208,7 +218,7 @@ export function HiveDashboard() {
 
       {/* Search */}
       <div className="flex justify-center mb-8">
-        <PlayerSearch onSelect={handleSelectPlayer} isLoading={loadingProfile} />
+        <PlayerSearch onSelect={handleSelectPlayer} isLoading={loadingProfile} value={profile?.username_cc ?? ""} />
       </div>
 
       {/* Error */}
