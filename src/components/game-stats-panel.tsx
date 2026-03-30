@@ -118,6 +118,24 @@ export function GameStatsPanel({
       : Math.floor((-1 + Math.sqrt(1 + (8 * stats.xp) / config.xpConstant)) / 2) + 1
     : 1;
 
+  // XP progress to next level
+  const xpProgress = (() => {
+    if (!gameMeta || !stats.xp) return null;
+    const entries = Object.entries(gameMeta.experienceToLevel)
+      .map(([k, v]) => ({ xpThreshold: Number(k), level: v }))
+      .sort((a, b) => a.xpThreshold - b.xpThreshold);
+    const currentEntry = [...entries].reverse().find((e) => stats.xp! >= e.xpThreshold);
+    const nextEntry = entries.find((e) => e.xpThreshold > (stats.xp ?? 0));
+    // Max level — show full bar
+    if (currentEntry && !nextEntry) {
+      return { xpIntoLevel: 1, xpNeeded: 1, percent: 100, maxLevel: true };
+    }
+    if (!currentEntry || !nextEntry) return null;
+    const xpIntoLevel = stats.xp! - currentEntry.xpThreshold;
+    const xpNeeded = nextEntry.xpThreshold - currentEntry.xpThreshold;
+    return { xpIntoLevel, xpNeeded, percent: Math.min((xpIntoLevel / xpNeeded) * 100, 100), maxLevel: false };
+  })();
+
   return (
     <div className="space-y-5 animate-fade-in-up">
       {/* XP / Games / Wins bar */}
@@ -169,6 +187,27 @@ export function GameStatsPanel({
           </span>
         )}
       </div>
+
+      {/* XP progress bar */}
+      {xpProgress && (
+        <div className="space-y-1">
+          <div className="flex justify-between text-[10px] text-[#7a756b]">
+            <span>Level {xpLevel}</span>
+            <span>
+              {xpProgress.maxLevel
+                ? <span style={{ color: config.color }}>Max Level</span>
+                : <>{formatNumber(xpProgress.xpIntoLevel)} / {formatNumber(xpProgress.xpNeeded)} XP <span className="text-[#f0ece4]/30">({xpProgress.percent.toFixed(1)}%)</span></>
+              }
+            </span>
+          </div>
+          <div className="h-1.5 w-full rounded-full bg-[rgba(255,184,0,0.08)] overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{ width: `${xpProgress.percent}%`, backgroundColor: config.color }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Monthly stats */}
       {monthlyStats && (
