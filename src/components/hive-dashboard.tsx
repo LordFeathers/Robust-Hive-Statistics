@@ -150,11 +150,11 @@ export function HiveDashboard() {
   const handleGameChange = useCallback(
     (gameId: string) => {
       setActiveGame(gameId);
-      if (profile && gameStats[gameId] === undefined) {
+      if (profile && (gameStats[gameId] === undefined || gameMeta[gameId] === undefined)) {
         loadGameStats(gameId, profile.username_cc);
       }
     },
-    [profile, gameStats, loadGameStats]
+    [profile, gameStats, gameMeta, loadGameStats]
   );
 
   const activeConfig = GAME_CONFIGS.find((g) => g.id === activeGame) as GameConfig;
