@@ -29,13 +29,44 @@ function HubTitleIcon({ name }: { name: string }) {
   );
 }
 
+const REWARD_TYPE_EMOJI: Record<string, string> = {
+  "Hub Title":       "🏷️",
+  "Costume":         "👘",
+  "Avatar":          "🖼️",
+  "Kill Phrase":     "💬",
+  "Death Crate":     "📦",
+  "Projectile Trail":"✨",
+  "Player Flag":     "🚩",
+  "Spawn Vehicle":   "🚗",
+  "Kill Effects":    "⚡",
+  "Kill Effect":     "⚡",
+  "Arrow Trail":     "🏹",
+  "Gravestone":      "🪦",
+  "Murder Weapon":   "🔪",
+  "Ghost Color":     "👻",
+  "Death Sound":     "🔊",
+  "Zapper Trail":    "⚡",
+  "Throwable":       "🎯",
+  "Bed Frame":       "🛏️",
+  "Bed Sheet":       "🛏️",
+  "Bed Pillow":      "🛏️",
+  "Bed Topper":      "🛏️",
+  "Island Banner":   "🏳️",
+  "Merchant Skin":   "🧑‍💼",
+  "Armor Skin":      "🛡️",
+};
+
 function RewardIcon({ reward }: { reward: LevelReward }) {
   const [failed, setFailed] = useState(false);
   if (reward.type === "Hub Title") return <HubTitleIcon name={reward.name} />;
   if (!reward.icon || failed) {
+    const emoji = REWARD_TYPE_EMOJI[reward.type];
     return (
-      <div className="h-10 w-10 shrink-0 rounded-lg bg-[rgba(255,184,0,0.08)] flex items-center justify-center">
-        <span className="text-[10px] font-semibold text-[#FFB800]/60 leading-none">{reward.type.slice(0, 2).toUpperCase()}</span>
+      <div className="h-10 w-10 shrink-0 rounded-lg bg-[rgba(255,184,0,0.06)] flex items-center justify-center">
+        {emoji
+          ? <span className="text-xl leading-none">{emoji}</span>
+          : <span className="text-[10px] font-semibold text-[#FFB800]/60 leading-none">{reward.type.slice(0, 2).toUpperCase()}</span>
+        }
       </div>
     );
   }

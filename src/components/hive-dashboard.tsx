@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { PlayerSearch } from "@/components/player-search";
 import { PlayerProfileCard } from "@/components/player-profile";
 import { GameStatsPanel } from "@/components/game-stats-panel";
+import { LeaderboardPanel } from "@/components/leaderboard-panel";
 import { ErrorBoundary } from "@/components/error-boundary";
 import {
   getPlayerProfile,
@@ -26,6 +27,7 @@ export function HiveDashboard() {
   const [gameStats, setGameStats] = useState<Record<string, GameStats | null>>({});
   const [monthlyStats, setMonthlyStats] = useState<Record<string, MonthlyStats | null>>({});
   const [activeGame, setActiveGame] = useState<string>("bed");
+  const [activeView, setActiveView] = useState<"stats" | "leaderboard">("stats");
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [loadingGame, setLoadingGame] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -170,8 +172,9 @@ export function HiveDashboard() {
         const totalWins = games.reduce((acc, g) => acc + (g.stats?.victories || 0), 0);
         const totalGames = games.reduce((acc, g) => acc + (g.stats?.played || 0), 0);
         const bestGame = games.reduce<{ config: GameConfig; wr: number } | null>((best, g) => {
-          if (!g.stats?.played) return best;
+          if (!g.stats?.played || !g.stats?.victories) return best;
           const wr = (g.stats.victories / g.stats.played) * 100;
+          if (!isFinite(wr)) return best;
           return !best || wr > best.wr ? { config: g.config, wr } : best;
         }, null);
 
@@ -325,7 +328,23 @@ export function HiveDashboard() {
 
           {/* Game selector tabs */}
           <div className="animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap items-center gap-1">
+              {/* Stats / Leaderboard toggle */}
+              <div className="flex rounded-lg border border-[rgba(255,184,0,0.08)] overflow-hidden mr-2">
+                {(["stats", "leaderboard"] as const).map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => setActiveView(v)}
+                    className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                      activeView === v
+                        ? "bg-[rgba(255,184,0,0.1)] text-[#FFB800]"
+                        : "text-[#7a756b] hover:text-[#f0ece4]/70"
+                    }`}
+                  >
+                    {v === "stats" ? "Stats" : "Leaderboard"}
+                  </button>
+                ))}
+              </div>
               {GAME_CONFIGS.map((game) => {
                 const isActive = activeGame === game.id;
                 const hasData = gameStats[game.id]?.played;
@@ -347,30 +366,30 @@ export function HiveDashboard() {
                     <span className="text-base">{game.icon}</span>
                     <span className="hidden sm:inline">{game.name}</span>
                     <span className="sm:hidden">{game.shortName}</span>
-                    {hasData && (
-                      <span
-                        className={`ml-1 inline-block h-1.5 w-1.5 rounded-full ${
-                          isActive ? "bg-[#FFB800]" : "bg-[#7a756b]/40"
-                        }`}
-                      />
-                    )}
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Active game stats */}
-          <div key={activeGame} className="animate-fade-in-up" style={{ animationDelay: "0.05s" }}>
+          {/* Active game stats / leaderboard */}
+          <div key={`${activeGame}-${activeView}`} className="animate-fade-in-up" style={{ animationDelay: "0.05s" }}>
             <ErrorBoundary>
-              <GameStatsPanel
-                config={activeConfig}
-                stats={gameStats[activeGame] ?? null}
-                loading={loadingGame === activeGame}
-                uniquePlayers={globalStats?.unique_players[activeGame] ?? null}
-                monthlyStats={monthlyStats[activeGame] ?? null}
-                gameMeta={gameMeta[activeGame] ?? null}
-              />
+              {activeView === "stats" ? (
+                <GameStatsPanel
+                  config={activeConfig}
+                  stats={gameStats[activeGame] ?? null}
+                  loading={loadingGame === activeGame}
+                  uniquePlayers={globalStats?.unique_players[activeGame] ?? null}
+                  monthlyStats={monthlyStats[activeGame] ?? null}
+                  gameMeta={gameMeta[activeGame] ?? null}
+                />
+              ) : (
+                <LeaderboardPanel
+                  config={activeConfig}
+                  onSelectPlayer={handleSelectPlayer}
+                />
+              )}
             </ErrorBoundary>
           </div>
         </div>

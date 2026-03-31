@@ -109,6 +109,42 @@ export async function getGlobalStats(): Promise<GlobalStats | null> {
   return fetchApi("global/statistics");
 }
 
+export interface LeaderboardEntry {
+  index: number;
+  human_index: number;
+  username: string;
+  UUID: string;
+  xp?: number;
+  played: number;
+  victories: number;
+  kills?: number;
+  deaths?: number;
+  prestige?: number;
+  [key: string]: number | string | undefined;
+}
+
+export interface AvailableMonth {
+  month: string;
+  year: number;
+  month_number: number;
+  resource: string;
+}
+
+export async function getAllTimeLeaderboard(game: string): Promise<LeaderboardEntry[] | null> {
+  return fetchApi(`game/all/${encodeURIComponent(game)}`);
+}
+
+export async function getMonthlyLeaderboard(game: string, year?: number, month?: number): Promise<LeaderboardEntry[] | null> {
+  if (year && month) {
+    return fetchApi(`game/monthly/${encodeURIComponent(game)}/${year}/${month}/100/0`);
+  }
+  return fetchApi(`game/monthly/${encodeURIComponent(game)}`);
+}
+
+export async function getAvailableMonths(game: string): Promise<AvailableMonth[] | null> {
+  return fetchApi(`game/monthly/${encodeURIComponent(game)}/available`);
+}
+
 export async function getMonthlyStats(
   game: string,
   identifier: string
