@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hive Stats
+
+Player statistics tracker for The Hive Minecraft Bedrock server.
+
+[![Live App](https://img.shields.io/badge/Live%20App-robust--hive--statistics.vercel.app-FFB800?style=flat&logo=vercel&logoColor=white)](https://robust-hive-statistics.vercel.app)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat&logo=next.js)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat&logo=typescript&logoColor=white)](https://typescriptlang.org)
+
+## Features
+
+- Player stats for all 14 Hive game modes (Bed Wars, Treasure Wars, SkyWars, and more)
+- Monthly and all-time leaderboards per game
+- XP progress bar, level rewards, and prestige support
+- Shareable URLs — `/?player=username&game=sky`
+- PWA — installable on Android via Google Play or directly from the browser
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/                    # Next.js pages and routes
+│   ├── page.tsx            # Home page (player search + stats)
+│   ├── leaderboard/        # Leaderboard page
+│   └── api/hive/           # Proxy to api.playhive.com
+├── components/             # UI components
+│   ├── hive-dashboard.tsx  # Main app shell
+│   ├── game-stats-panel.tsx
+│   ├── leaderboard-panel.tsx
+│   ├── player-profile.tsx
+│   └── player-search.tsx
+└── lib/
+    ├── hive-api.ts         # Hive API client
+    ├── game-config.ts      # Game definitions and stat labels
+    └── minecraft-text.tsx  # Minecraft color code parser
 
-## Learn More
+public/
+├── sw.js                          # Service worker (PWA)
+├── icon-192.png / icon-512.png    # App icons
+└── .well-known/assetlinks.json    # Android TWA domain verification
 
-To learn more about Next.js, take a look at the following resources:
+android/          # Android TWA project (bubblewrap)
+twa-manifest.json # Bubblewrap config
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Building the Android APK
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Requires `android/android.keystore` (not committed — keep this file safe).
 
-## Deploy on Vercel
+```bash
+bubblewrap build
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Output files appear in `android/` — use `app-release-bundle.aab` for Play Store submission.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deployment
+
+Automatically deployed to Vercel on every push to `main`.
+
+## Data Source
+
+Stats are fetched from the [Hive API](https://api.playhive.com/v0). This project is not affiliated with Hive Games.
