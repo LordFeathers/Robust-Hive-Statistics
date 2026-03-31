@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import Link from "next/link";
 import { PlayerSearch } from "@/components/player-search";
 import { PlayerProfileCard } from "@/components/player-profile";
 import { GameStatsPanel } from "@/components/game-stats-panel";
-import { LeaderboardPanel } from "@/components/leaderboard-panel";
 import { ErrorBoundary } from "@/components/error-boundary";
 import {
   getPlayerProfile,
@@ -27,7 +27,6 @@ export function HiveDashboard() {
   const [gameStats, setGameStats] = useState<Record<string, GameStats | null>>({});
   const [monthlyStats, setMonthlyStats] = useState<Record<string, MonthlyStats | null>>({});
   const [activeGame, setActiveGame] = useState<string>("bed");
-  const [activeView, setActiveView] = useState<"stats" | "leaderboard">("stats");
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [loadingGame, setLoadingGame] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -237,6 +236,14 @@ export function HiveDashboard() {
             <span className="text-[#FFB800]/60">{formatNumber(globalStats.unique_players.global)}</span> unique players tracked
           </p>
         )}
+        <div className="mt-4">
+          <Link
+            href="/leaderboard"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[rgba(255,184,0,0.2)] bg-[rgba(255,184,0,0.06)] px-4 py-1.5 text-sm font-medium text-[#FFB800]/80 hover:text-[#FFB800] hover:bg-[rgba(255,184,0,0.1)] hover:border-[rgba(255,184,0,0.35)] transition-all"
+          >
+            🏆 View Leaderboards
+          </Link>
+        </div>
       </header>
 
       {/* Offline banner */}
@@ -329,22 +336,6 @@ export function HiveDashboard() {
           {/* Game selector tabs */}
           <div className="animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
             <div className="flex flex-wrap items-center gap-1">
-              {/* Stats / Leaderboard toggle */}
-              <div className="flex rounded-lg border border-[rgba(255,184,0,0.08)] overflow-hidden mr-2">
-                {(["stats", "leaderboard"] as const).map((v) => (
-                  <button
-                    key={v}
-                    onClick={() => setActiveView(v)}
-                    className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-                      activeView === v
-                        ? "bg-[rgba(255,184,0,0.1)] text-[#FFB800]"
-                        : "text-[#7a756b] hover:text-[#f0ece4]/70"
-                    }`}
-                  >
-                    {v === "stats" ? "Stats" : "Leaderboard"}
-                  </button>
-                ))}
-              </div>
               {GAME_CONFIGS.map((game) => {
                 const isActive = activeGame === game.id;
                 const hasData = gameStats[game.id]?.played;
@@ -373,23 +364,16 @@ export function HiveDashboard() {
           </div>
 
           {/* Active game stats / leaderboard */}
-          <div key={`${activeGame}-${activeView}`} className="animate-fade-in-up" style={{ animationDelay: "0.05s" }}>
+          <div key={activeGame} className="animate-fade-in-up" style={{ animationDelay: "0.05s" }}>
             <ErrorBoundary>
-              {activeView === "stats" ? (
-                <GameStatsPanel
-                  config={activeConfig}
-                  stats={gameStats[activeGame] ?? null}
-                  loading={loadingGame === activeGame}
-                  uniquePlayers={globalStats?.unique_players[activeGame] ?? null}
-                  monthlyStats={monthlyStats[activeGame] ?? null}
-                  gameMeta={gameMeta[activeGame] ?? null}
-                />
-              ) : (
-                <LeaderboardPanel
-                  config={activeConfig}
-                  onSelectPlayer={handleSelectPlayer}
-                />
-              )}
+              <GameStatsPanel
+                config={activeConfig}
+                stats={gameStats[activeGame] ?? null}
+                loading={loadingGame === activeGame}
+                uniquePlayers={globalStats?.unique_players[activeGame] ?? null}
+                monthlyStats={monthlyStats[activeGame] ?? null}
+                gameMeta={gameMeta[activeGame] ?? null}
+              />
             </ErrorBoundary>
           </div>
         </div>

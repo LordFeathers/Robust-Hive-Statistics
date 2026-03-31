@@ -54,6 +54,22 @@ const REWARD_TYPE_EMOJI: Record<string, string> = {
   "Island Banner":   "🏳️",
   "Merchant Skin":   "🧑‍💼",
   "Armor Skin":      "🛡️",
+  // Block Drop
+  "Death Message":   "💀",
+  "Trail":           "✨",
+  "Vault Effect":    "💫",
+  "Powerup":         "⚡",
+  // Just Build
+  "Builder Cape":    "🧣",
+  "Hard Hat":        "🪖",
+  "Builder Trail":   "✨",
+  // Block Party
+  "Elimination Sound":   "🔊",
+  "Elimination Message": "💬",
+  "Elimination Beacon":  "🏮",
+  // Gravity
+  "Death Soul":      "👻",
+  "Portal Taunt":    "🌀",
 };
 
 function RewardIcon({ reward }: { reward: LevelReward }) {
