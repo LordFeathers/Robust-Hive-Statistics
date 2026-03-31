@@ -56,6 +56,8 @@ export function HiveDashboard() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const player = params.get("player");
+    const game = params.get("game");
+    if (game && GAME_CONFIGS.some((g) => g.id === game)) setActiveGame(game);
     if (player) handleSelectPlayer(player);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -151,6 +153,9 @@ export function HiveDashboard() {
   const handleGameChange = useCallback(
     (gameId: string) => {
       setActiveGame(gameId);
+      const url = new URL(window.location.href);
+      url.searchParams.set("game", gameId);
+      window.history.replaceState({}, "", url.toString());
       if (profile && (gameStats[gameId] === undefined || gameMeta[gameId] === undefined)) {
         loadGameStats(gameId, profile.username_cc);
       }
@@ -338,7 +343,6 @@ export function HiveDashboard() {
             <div className="flex flex-wrap items-center gap-1">
               {GAME_CONFIGS.map((game) => {
                 const isActive = activeGame === game.id;
-                const hasData = gameStats[game.id]?.played;
                 return (
                   <button
                     key={game.id}

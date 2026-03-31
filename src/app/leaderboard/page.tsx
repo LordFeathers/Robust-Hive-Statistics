@@ -1,14 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LeaderboardPanel } from "@/components/leaderboard-panel";
 import { GAME_CONFIGS, type GameConfig } from "@/lib/game-config";
 
+const VALID_GAME_IDS = new Set(GAME_CONFIGS.map((g) => g.id));
+
 export default function LeaderboardPage() {
   const router = useRouter();
   const [activeGame, setActiveGame] = useState("bed");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const game = params.get("game");
+    if (game && VALID_GAME_IDS.has(game)) setActiveGame(game);
+  }, []);
+
+  function handleGameChange(gameId: string) {
+    setActiveGame(gameId);
+    const url = new URL(window.location.href);
+    url.searchParams.set("game", gameId);
+    window.history.replaceState({}, "", url.toString());
+  }
 
   const activeConfig = GAME_CONFIGS.find((g) => g.id === activeGame) as GameConfig;
 
@@ -54,7 +69,7 @@ export default function LeaderboardPage() {
             return (
               <button
                 key={game.id}
-                onClick={() => setActiveGame(game.id)}
+                onClick={() => handleGameChange(game.id)}
                 className={`game-tab flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-all ${
                   isActive
                     ? "bg-[rgba(255,184,0,0.1)] text-[#FFB800]"
