@@ -8,11 +8,27 @@ Player statistics tracker for The Hive Minecraft Bedrock server.
 
 ## Features
 
-- Player stats for all 14 Hive game modes (Bed Wars, Treasure Wars, SkyWars, and more)
-- Monthly and all-time leaderboards per game
-- XP progress bar, level rewards, and prestige support
-- Shareable URLs — `/?player=username&game=sky`
-- PWA — installable on Android via Google Play or directly from the browser
+**Player Stats**
+- Search any Hive Bedrock player by username with live autocomplete and recent player history
+- View stats across all 14 game modes: Bed Wars, Treasure Wars, SkyWars, Murder Mystery, Block Party, Block Drop, Just Build, Gravity, Ground Wars, Capture the Flag, Survival Games, Deathrun, Hide and Seek, and Treasure Wars Duos
+- Per-game primary stats (wins, kills, games played) plus computed ratios (win rate, K/D)
+- Monthly stats shown alongside all-time stats for each game
+- Overall summary across all games: total wins, total games, overall win rate, best win rate, and most played game
+
+**Progression**
+- XP progress bar showing current level and XP needed for the next level
+- Level rewards panel listing every cosmetic unlock — costumes, avatars, hub titles, kill effects, and more — with icons for each reward type
+- Prestige support for games that allow it
+
+**Leaderboards**
+- Separate leaderboard page for all 14 games
+- Toggle between current monthly leaderboard and all-time leaderboard
+- Select any past month to view historical rankings
+- Click any player in the leaderboard to instantly load their stats
+
+**General**
+- Shareable URLs — `/?player=username&game=sky` restores the exact view on reload
+- Responsive design for desktop and mobile
 
 ## Getting Started
 
