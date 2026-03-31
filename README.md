@@ -2,6 +2,7 @@
 
 Player statistics tracker for The Hive Minecraft Bedrock server.
 
+[![Live App](https://img.shields.io/badge/Live%20App-robust--hive--statistics.vercel.app-FFB800?style=flat&logo=vercel&logoColor=white)](https://robust-hive-statistics.vercel.app)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat&logo=next.js)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat&logo=typescript&logoColor=white)](https://typescriptlang.org)
 
