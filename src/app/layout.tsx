@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Rajdhani, JetBrains_Mono, Outfit } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -36,7 +37,14 @@ export default function RootLayout({
       lang="en"
       className={`${outfit.variable} ${rajdhani.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col honeycomb-bg" suppressHydrationWarning>{children}</body>
+      <body className="min-h-full flex flex-col honeycomb-bg" suppressHydrationWarning>
+        {children}
+        <Script id="sw-register" strategy="afterInteractive">{`
+          if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
+          }
+        `}</Script>
+      </body>
     </html>
   );
 }
