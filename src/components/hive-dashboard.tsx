@@ -57,8 +57,8 @@ export function HiveDashboard() {
     const params = new URLSearchParams(window.location.search);
     const player = params.get("player");
     const game = params.get("game");
-    if (game && GAME_CONFIGS.some((g) => g.id === game)) setActiveGame(game);
-    if (player) handleSelectPlayer(player);
+    const initialGame = (game && GAME_CONFIGS.some((g) => g.id === game)) ? game : "bed";
+    if (player) handleSelectPlayer(player, initialGame);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -94,7 +94,7 @@ export function HiveDashboard() {
   );
 
   const handleSelectPlayer = useCallback(
-    async (username: string) => {
+    async (username: string, initialGame = "bed") => {
       setLoadingProfile(true);
       setError(null);
       setSearched(true);
@@ -103,7 +103,7 @@ export function HiveDashboard() {
       setMonthlyStats({});
       setGameMeta({});
       setAllGamesSummary(null);
-      setActiveGame("bed");
+      setActiveGame(initialGame);
 
       try {
         const data = await getPlayerProfile(username);
@@ -118,18 +118,19 @@ export function HiveDashboard() {
         // Update URL
         const url = new URL(window.location.href);
         url.searchParams.set("player", data.main.username_cc);
+        url.searchParams.set("game", initialGame);
         window.history.replaceState({}, "", url.toString());
 
-        // Pre-load default game stats
-        setLoadingGame("bed");
-        const [bedStats, bedMonthly, bedMeta] = await Promise.all([
-          getGameStats("bed", username),
-          getMonthlyStats("bed", username),
-          getGameMeta("bed"),
+        // Pre-load initial game stats
+        setLoadingGame(initialGame);
+        const [initialStats, initialMonthly, initialMeta] = await Promise.all([
+          getGameStats(initialGame, username),
+          getMonthlyStats(initialGame, username),
+          getGameMeta(initialGame),
         ]);
-        setGameStats({ bed: bedStats });
-        setMonthlyStats({ bed: bedMonthly });
-        setGameMeta({ bed: bedMeta });
+        setGameStats({ [initialGame]: initialStats });
+        setMonthlyStats({ [initialGame]: initialMonthly });
+        setGameMeta({ [initialGame]: initialMeta });
         setLoadingGame(null);
 
         // Load all games in background for summary
