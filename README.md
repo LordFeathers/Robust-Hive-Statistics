@@ -67,12 +67,6 @@ android/          # Android TWA project (bubblewrap)
 twa-manifest.json # Bubblewrap config
 ```
 
-## Deploying
-
-Deploy to Vercel with one click:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/LordFeathers/Robust-Hive-Statistics)
-
 ## Building the Android APK
 
 Requires a keystore file at `android/android.keystore` (not committed). See the [bubblewrap docs](https://github.com/GoogleChromeLabs/bubblewrap) for setup.
