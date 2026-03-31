@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "app.vercel.robust_hive_statistics.twa",
+    "sha256_cert_fingerprints": [
+      "A3:C0:09:29:C3:20:D2:EE:E5:F1:9A:35:6B:75:58:62:8F:93:F5:0B:D0:7F:87:00:04:DF:DA:43:2F:63:B3:5A"
+    ]
+  }
+}]
