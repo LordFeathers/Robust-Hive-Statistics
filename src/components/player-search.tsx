@@ -31,7 +31,10 @@ export function PlayerSearch({ onSelect, isLoading, value }: PlayerSearchProps) 
   const [query, setQuery] = useState(value ?? "");
 
   useEffect(() => {
-    if (value !== undefined) setQuery(value);
+    if (value !== undefined) {
+      suppressSearchRef.current = true;
+      setQuery(value);
+    }
   }, [value]);
   const [results, setResults] = useState<PlayerSearchResult[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
