@@ -16,7 +16,7 @@
   "iconUrl": "https://robust-hive-statistics.vercel.app/icon-512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
-    "path": "C:\\Users\\yaako\\Downloads\\hive-stats-main\\android\\android.keystore",
+    "path": "./android/android.keystore",
     "alias": "android"
   },
   "appVersionName": "1",
