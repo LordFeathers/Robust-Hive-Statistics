@@ -54,7 +54,7 @@ export default function LeaderboardPage() {
         <div className="mt-3">
           <Link
             href="/"
-            className="text-xs text-[#7a756b] hover:text-[#FFB800] transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-md border border-[rgba(255,184,0,0.2)] bg-[rgba(255,184,0,0.06)] px-3 py-1.5 text-xs font-medium text-[#FFB800]/80 hover:bg-[rgba(255,184,0,0.12)] hover:text-[#FFB800] transition-colors"
           >
             ← Player Stats
           </Link>

@@ -96,7 +96,7 @@ export function LeaderboardPanel({ config, onSelectPlayer }: LeaderboardPanelPro
           >
             {[...availableMonths].reverse().map((m) => (
               <option key={`${m.year}-${m.month_number}`} value={`${m.year}-${m.month_number}`}>
-                {m.month} {m.year}
+                {m.month.charAt(0).toUpperCase() + m.month.slice(1)} {m.year}
               </option>
             ))}
           </select>
