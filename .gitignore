@@ -48,3 +48,7 @@ manifest-checksum.txt
 android/app/build/
 android/android.keystore
 .gradle/
+
+# claude code
+CLAUDE.md
+AGENTS.md
