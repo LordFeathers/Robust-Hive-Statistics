@@ -2,7 +2,7 @@
 
 Player statistics tracker for The Hive Minecraft Bedrock server.
 
-[![Live App](https://img.shields.io/badge/Live%20App-robust--hive--statistics.vercel.app-FFB800?style=flat&logo=vercel&logoColor=white)](https://robust-hive-statistics.vercel.app)
+[![Live App](https://img.shields.io/badge/Live%20App-robust--hive--statistics.vercel.app-FFB800?style=flat&logo=vercel&logoColor=white)](https://hive.yaakovsassoon.com)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat&logo=next.js)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat&logo=typescript&logoColor=white)](https://typescriptlang.org)
 
@@ -65,17 +65,6 @@ public/
 
 android/          # Android TWA project (bubblewrap)
 twa-manifest.json # Bubblewrap config
-```
-
-## Building the Android APK
-
-Requires a keystore file at `android/android.keystore` (not committed). See the [bubblewrap docs](https://github.com/GoogleChromeLabs/bubblewrap) for setup.
-
-```bash
-bubblewrap build
-```
-
-Output files appear in `android/` — use `app-release-bundle.aab` for Play Store submission.
 
 ## Data Source
 
