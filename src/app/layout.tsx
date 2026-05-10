@@ -22,7 +22,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Hive Stats — Minecraft Bedrock Player Statistics",
+  title: "Hive Stats",
   description:
     "Look up player statistics for The Hive Minecraft Bedrock server. View stats across Bed Wars, Treasure Wars, SkyWars, Murder Mystery, and more.",
 };
