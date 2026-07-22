@@ -78,11 +78,23 @@ export class RateLimitError extends Error {
   }
 }
 
+// Some networks run content filters that intercept responses and replace
+// them with an HTML block page (observed intermittently on real user
+// networks). Parse defensively and retry, so one mangled response can't
+// take down a whole page flow.
+const PARSE_RETRIES = 2;
+
 async function fetchApi<T>(path: string): Promise<T | null> {
-  const res = await fetch(`${API_BASE}/${path}`);
-  if (res.status === 429) throw new RateLimitError();
-  if (!res.ok) return null;
-  return res.json();
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(`${API_BASE}/${path}`);
+    if (res.status === 429) throw new RateLimitError();
+    if (!res.ok) return null;
+    try {
+      return await res.json();
+    } catch {
+      if (attempt >= PARSE_RETRIES) return null;
+    }
+  }
 }
 
 export async function searchPlayers(

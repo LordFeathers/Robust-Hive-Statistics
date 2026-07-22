@@ -126,7 +126,8 @@ export function HiveDashboard() {
         const [initialStats, initialMonthly, initialMeta] = await Promise.all([
           getGameStats(initialGame, username),
           getMonthlyStats(initialGame, username),
-          getGameMeta(initialGame),
+          // Meta is progression/rewards garnish — never let it break the search
+          getGameMeta(initialGame).catch(() => null),
         ]);
         setGameStats({ [initialGame]: initialStats });
         setMonthlyStats({ [initialGame]: initialMonthly });
@@ -379,7 +380,7 @@ export function HiveDashboard() {
                 loading={loadingGame === activeGame}
                 uniquePlayers={globalStats?.unique_players[activeGame] ?? null}
                 monthlyStats={monthlyStats[activeGame] ?? null}
-                gameMeta={gameMeta[activeGame] ?? null}
+                gameMeta={gameMeta[activeGame]}
               />
             </ErrorBoundary>
           </div>

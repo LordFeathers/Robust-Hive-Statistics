@@ -32,9 +32,17 @@ export async function GET(
 
   const url = `${HIVE_API_BASE}/${path.map(encodeURIComponent).join("/")}`;
 
+  // Optional: a Hive-issued API key restores fields (e.g. username_cc in
+  // search) that anonymous v0 requests no longer receive. Set HIVE_API_KEY
+  // in the deployment env; sent as HTTP basic auth per the OpenAPI spec.
+  const headers: Record<string, string> = { Accept: "application/json" };
+  if (process.env.HIVE_API_KEY) {
+    headers.Authorization = `Basic ${Buffer.from(`${process.env.HIVE_API_KEY}:`).toString("base64")}`;
+  }
+
   try {
     const res = await fetch(url, {
-      headers: { Accept: "application/json" },
+      headers,
       next: { revalidate: 60 },
     });
 

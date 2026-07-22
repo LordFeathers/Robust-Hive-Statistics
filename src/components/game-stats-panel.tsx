@@ -351,8 +351,8 @@ export function GameStatsPanel({
         </div>
       )}
 
-      {/* Level rewards skeleton while meta loads */}
-      {!gameMeta && (
+      {/* Level rewards skeleton while meta loads; null means unavailable — hide */}
+      {gameMeta === undefined && (
         <div className="rounded-xl border border-[rgba(255,184,0,0.06)] bg-[rgba(255,184,0,0.02)] px-4 py-3 flex items-center justify-between">
           <Skeleton className="h-3 w-24 bg-[rgba(255,184,0,0.06)]" />
           <Skeleton className="h-3 w-32 bg-[rgba(255,184,0,0.06)]" />
