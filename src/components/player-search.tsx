@@ -179,7 +179,7 @@ export function PlayerSearch({ onSelect, isLoading, value }: PlayerSearchProps) 
             >
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[rgba(255,184,0,0.08)]">
                 <span className="font-mono text-xs text-[#FFB800]/70">
-                  {result.username_cc.slice(0, 2).toUpperCase()}
+                  {(result.username_cc || result.username || "?").slice(0, 2).toUpperCase()}
                 </span>
               </div>
               <div className="text-sm font-medium text-[#f0ece4]">

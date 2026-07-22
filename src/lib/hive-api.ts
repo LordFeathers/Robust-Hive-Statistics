@@ -7,6 +7,7 @@ export interface GlobalStats {
 export interface PlayerSearchResult {
   UUID: string;
   username: string;
+  /** Case-corrected username. Null from the raw API at times; normalized to a string by searchPlayers. */
   username_cc: string;
 }
 
@@ -89,7 +90,11 @@ export async function searchPlayers(
 ): Promise<PlayerSearchResult[]> {
   if (query.length < 4) return [];
   const data = await fetchApi<PlayerSearchResult[]>(`player/search/${encodeURIComponent(query)}`);
-  return data || [];
+  if (!Array.isArray(data)) return [];
+  // The API may return username_cc as null; fall back to the lowercase username
+  return data
+    .filter((r) => r && (r.username_cc || r.username))
+    .map((r) => ({ ...r, username_cc: r.username_cc || r.username }));
 }
 
 export async function getPlayerProfile(

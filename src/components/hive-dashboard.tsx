@@ -263,7 +263,9 @@ export function HiveDashboard() {
 
       {/* Search */}
       <div className="flex justify-center mb-8">
-        <PlayerSearch onSelect={handleSelectPlayer} isLoading={loadingProfile} value={profile?.username_cc ?? ""} />
+        <ErrorBoundary>
+          <PlayerSearch onSelect={handleSelectPlayer} isLoading={loadingProfile} value={profile?.username_cc ?? ""} />
+        </ErrorBoundary>
       </div>
 
       {/* Error */}
